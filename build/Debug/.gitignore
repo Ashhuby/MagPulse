@@ -1,0 +1,4 @@
+.vs/
+*.ipch
+build/
+out/
