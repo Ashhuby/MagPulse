@@ -62,8 +62,8 @@ void UpdateBall(Ball& b, float delta) {
         b.position.x = RightWallPosition - b.radius;
         b.velocity.x *= -1 * Restitution;
     }
-    if (b.position.x <= (LeftWallPosition - b.radius)) {
-        b.position.x = LeftWallPosition - b.radius;
+    if (b.position.x <= (LeftWallPosition + b.radius)) {
+        b.position.x = LeftWallPosition + b.radius;
         b.velocity.x *= -1 * Restitution;
     }
     
@@ -95,9 +95,23 @@ int main()
     while (window.isOpen())
     {
         // Events here
-        dt = (float)dtClock.getElapsedTime().asSeconds();
-        //std::cout << "DT: " << dt << std::endl;
+        dt = (float)dtClock.getElapsedTime().asSeconds();   //std::cout << "DT: " << dt << std::endl;
         dtClock.restart();
+
+        // Click to add balls
+        while (const std::optional event = window.pollEvent()) {
+            if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                float x = mousePressed->position.x;
+                float y = mousePressed->position.y;
+                sf::Color randomColour(rand() % 256, rand() % 256, rand() % 256);
+                float randomRadius = 10 + (rand() % 30);
+                
+                std::cout << x << ", " << y << std::endl;
+
+                Ball ball0 = Ball({x,y}, randomRadius, randomColour);
+                balls.push_back(ball0);
+            }
+        }
 
         window.clear(sf::Color::Black);
 
