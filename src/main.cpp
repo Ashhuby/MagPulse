@@ -6,10 +6,15 @@
 const float GravityMultiplier = 100.0;
 const float Restitution = 0.8f; // 1 = perfectly elastic 0 = perfectly ineleastic
 const float Gravity = 9.80f * GravityMultiplier;
+const float MaxSpeed = 3000.0;
 
 // Walls
-std::vector<float> Walls = {};
+//std::vector<float> Walls = {};
 const float FloorPosition = 600.0;
+const float RightWallPosition = 800.0;
+const float CeilingPosition = 0.0;
+const float LeftWallPosition = 0.0;
+
 
 struct Ball{
     sf::Vector2f position;
@@ -45,7 +50,25 @@ void UpdateBall(Ball& b, float delta) {
     if (b.position.y >= (FloorPosition - b.radius)) {
         b.position.y = FloorPosition - b.radius;   // Move back 
         b.velocity.y *= -1 * Restitution;
-    }     
+    }  
+    if (b.position.y <= (CeilingPosition + b.radius)) {
+         b.position.y = CeilingPosition + b.radius;   
+         b.velocity.y *= -1 * Restitution;
+    }
+
+
+    // Wall detection
+    if (b.position.x >= (RightWallPosition - b.radius)) {
+        b.position.x = RightWallPosition - b.radius;
+        b.velocity.x *= -1 * Restitution;
+    }
+    if (b.position.x <= (LeftWallPosition - b.radius)) {
+        b.position.x = LeftWallPosition - b.radius;
+        b.velocity.x *= -1 * Restitution;
+    }
+    
+    if (b.velocity.y >= MaxSpeed) b.velocity.y = MaxSpeed; //std::cout << b.velocity.y;
+    if (b.velocity.x >= MaxSpeed) b.velocity.x = MaxSpeed;
 }
 
 int main()
@@ -73,7 +96,7 @@ int main()
     {
         // Events here
         dt = (float)dtClock.getElapsedTime().asSeconds();
-        std::cout << "DT: " << dt << std::endl;
+        //std::cout << "DT: " << dt << std::endl;
         dtClock.restart();
 
         window.clear(sf::Color::Black);
