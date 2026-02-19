@@ -22,21 +22,13 @@ struct Ball{
     sf::Color colour;
     sf::Vector2f velocity;
 
-public:
-    Ball(sf::Vector2f Position, float Radius = 1.0f, sf::Color Colour = sf::Color::White) {
-        radius = Radius;
-        colour = Colour;
-        position = Position;
-        velocity = { 0.0f,0.0f };
-    }
-    /*
-    Ball(sf::Vector2f Position, float Radius = 1.0f, sf::Color Colour = sf::Color::White, sf::Vector2f Velocity) {
+public:    
+    Ball(sf::Vector2f Position, float Radius = 1.0f, sf::Color Colour = sf::Color::White, sf::Vector2f Velocity = {0.0f,0.0f}) {
         radius = Radius;
         colour = Colour;
         position = Position;
         velocity = Velocity;
     }
-    */
 };
 
 void DrawBall(Ball b, sf::RenderWindow& window) {
@@ -121,11 +113,6 @@ int main()
     // Set up balls
     std::vector<Ball> balls;
 
-    //Ball ball1 = Ball({ 400.0f,300.0f }, 25.0f, sf::Color::Red);
-    //Ball ball2 = Ball({ 250.0f,300.0f }, 45.0f, sf::Color::Magenta);
-    ///balls.push_back(ball1);
-    //balls.push_back(ball2);
-
     // Set up dt
     sf::Clock dtClock;
     float dt; // 1/60 0.16ms
@@ -144,43 +131,51 @@ int main()
         dt = (float)dtClock.getElapsedTime().asSeconds();   //std::cout << "DT: " << dt << std::endl;
         dtClock.restart();
 
-        // Click to add balls
-        while (const std::optional event = window.pollEvent()) {
-            if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
-                float x = mousePressed->position.x;
-                float y = mousePressed->position.y;
-                sf::Color randomColour(rand() % 256, rand() % 256, rand() % 256);
-                float randomRadius = 25 + (rand() % 5);
-
-                std::cout << x << ", " << y << std::endl;
-
-                Ball ball0 = Ball({ x,y }, randomRadius, randomColour);
-                balls.push_back(ball0);
-            }
-
+        // Add balls with mouse
+        while (const std::optional event = window.pollEvent()) {           
             // TODO: drag state events
-            if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed()) {
-                //Store inital mouse pos and show indicator 
-            }
+            if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mousePressed->button == sf::Mouse::Button::Left) {
+                    //Store inital mouse pos and show indicator 
+                    isDragging = true;
+                    initialMouseX = mousePressed->position.x;
+                    initialMouseY = mousePressed->position.y;
 
+                    // Set current to sanme position initally 
+                    currentMouseX = initialMouseX;
+                    currentMouseY = initialMouseY;
+                }
+             }
             if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>()) {
                 // TODO: Update current mouse position during drag
+                if (isDragging) {
+                currentMouseX = mouseMoved->position.x;
+                currentMouseY = mouseMoved->position.y;
+                }
             }
-
             // RELEASE MEEE
-            if (const auto* mouseReleased = event->getIf<sf::Event::MouseButtonReleased()) {
-                
-            }
+            if (const auto* mouseReleased = event->getIf<sf::Event::MouseButtonReleased>()) {
+                if (isDragging) {
+                    // TODO: Velocity Calculation
+                    float dragX = currentMouseX - initialMouseX;
+                    float dragY = currentMouseY - initialMouseY;
 
-            
+                    float strength = 5.0f;
+                    float velocityX = (initialMouseX - currentMouseX) * strength;
+                    float velocityY = (initialMouseY - currentMouseY) * strength;
+                    sf::Color randomColour(rand() % 256, rand() % 256, rand() % 256);
+                    float randomRadius = 25 + (rand() % 5);
+                    Ball ball0 = Ball({initialMouseX, initialMouseY }, randomRadius, randomColour,{velocityX, velocityY});
+                    balls.push_back(ball0);
 
-            // TODO: Velocity Calculation
-
-            // TODO: Visual indicator
-            
+                    isDragging = false;
+                }                
+            }                                         
         }
 
         window.clear(sf::Color::Black);
+
+        // TODO: Visual indicator    
 
         // Draw and update balls
         for (Ball& b : balls) {           
@@ -192,6 +187,6 @@ int main()
 
         window.display();
     }
-
     return 0;
 }
+
