@@ -29,6 +29,14 @@ public:
         position = Position;
         velocity = { 0.0f,0.0f };
     }
+    /*
+    Ball(sf::Vector2f Position, float Radius = 1.0f, sf::Color Colour = sf::Color::White, sf::Vector2f Velocity) {
+        radius = Radius;
+        colour = Colour;
+        position = Position;
+        velocity = Velocity;
+    }
+    */
 };
 
 void DrawBall(Ball b, sf::RenderWindow& window) {
@@ -113,14 +121,21 @@ int main()
     // Set up balls
     std::vector<Ball> balls;
 
-    Ball ball1 = Ball({ 400.0f,300.0f }, 25.0f, sf::Color::Red);
-    Ball ball2 = Ball({ 250.0f,300.0f }, 45.0f, sf::Color::Magenta);
-    balls.push_back(ball1);
-    balls.push_back(ball2);
+    //Ball ball1 = Ball({ 400.0f,300.0f }, 25.0f, sf::Color::Red);
+    //Ball ball2 = Ball({ 250.0f,300.0f }, 45.0f, sf::Color::Magenta);
+    ///balls.push_back(ball1);
+    //balls.push_back(ball2);
 
     // Set up dt
     sf::Clock dtClock;
     float dt; // 1/60 0.16ms
+
+    // Set up drag state
+    bool isDragging = false;
+    float initialMouseX;
+    float initialMouseY;
+    float currentMouseX;
+    float currentMouseY;
 
     // Loop
     while (window.isOpen())
@@ -136,12 +151,33 @@ int main()
                 float y = mousePressed->position.y;
                 sf::Color randomColour(rand() % 256, rand() % 256, rand() % 256);
                 float randomRadius = 25 + (rand() % 5);
-                
+
                 std::cout << x << ", " << y << std::endl;
 
-                Ball ball0 = Ball({x,y}, randomRadius, randomColour);
+                Ball ball0 = Ball({ x,y }, randomRadius, randomColour);
                 balls.push_back(ball0);
             }
+
+            // TODO: drag state events
+            if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed()) {
+                //Store inital mouse pos and show indicator 
+            }
+
+            if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>()) {
+                // TODO: Update current mouse position during drag
+            }
+
+            // RELEASE MEEE
+            if (const auto* mouseReleased = event->getIf<sf::Event::MouseButtonReleased()) {
+                
+            }
+
+            
+
+            // TODO: Velocity Calculation
+
+            // TODO: Visual indicator
+            
         }
 
         window.clear(sf::Color::Black);
