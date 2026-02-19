@@ -9,7 +9,7 @@ const float WindowHeight = 600;
 
 // Global variables
 const float GravityMultiplier = 100.0;
-const float Restitution = 0.2f; // 1 = perfectly elastic 0 = perfectly ineleastic
+const float Restitution = 0.8f; // 1 = perfectly elastic 0 = perfectly ineleastic
 const float Gravity = 9.80f * GravityMultiplier;
 const float MaxSpeed = 3000.0;
 
@@ -24,6 +24,7 @@ struct Ball{
     float radius;
     sf::Color colour;
     sf::Vector2f velocity;
+    float flashTimer = 0.0f;
 
 public:    
     Ball(sf::Vector2f Position, float Radius = 1.0f, sf::Color Colour = sf::Color::White, sf::Vector2f Velocity = {0.0f,0.0f}) {
@@ -34,12 +35,20 @@ public:
     }
 };
 
-void DrawBall(Ball b, sf::RenderWindow& window) {
+void DrawBall(Ball& b, sf::RenderWindow& window, float delta) {  
     sf::CircleShape circle;
     circle.setRadius(b.radius);
-    circle.setPosition({b.position.x - b.radius, b.position.y - b.radius}); // Centre the pos 
-    circle.setFillColor(b.colour); 
-    window.draw(circle); 
+    circle.setPosition({ b.position.x - b.radius, b.position.y - b.radius }); // Centre the pos
+
+    if (b.flashTimer > 0) {
+        circle.setFillColor(sf::Color::White);
+        b.flashTimer -= delta;  // For the flash
+    }
+    else {
+        circle.setFillColor(b.colour);
+    }
+
+    window.draw(circle);
 }
 
 void UpdateBall(Ball& b, float delta) {
@@ -99,7 +108,10 @@ void DetectBallCollisions(std::vector<Ball>& b) {
                 currentBall.velocity += impulseVector;
                 otherBall.velocity -= impulseVector;
 
-
+                float collisionForce = std::abs(velAlongNormal);  // How hard they hit
+                float flashIntensity = std::min(collisionForce / 500.0f, 1.0f);  // Cap at 1.0
+                currentBall.flashTimer = 0.03f + flashIntensity * 0.1f;  // Longer flash for harder hits
+                otherBall.flashTimer = 0.03f + flashIntensity * 0.1f;
             }
         }
     }
@@ -108,16 +120,29 @@ void DetectBallCollisions(std::vector<Ball>& b) {
 int main()
 {
     std::cout << "=== BounceLab Starting ===" << std::endl;
+    
+    // Icon
     sf::Image icon;
     if (!icon.loadFromFile("Icon/BounceLabIcon.png")) {
         std::cout << "ERROR: Could not load icon!" << std::endl;
     }
-    else {
-        std::cout << "Icon loaded successfully!" << std::endl;
-    }
-
+   
     sf::RenderWindow window(sf::VideoMode({ (int)WindowWidth, (int)WindowHeight}), "BounceLab");
     window.setIcon(icon.getSize(), icon.getPixelsPtr());
+
+    // Background setup
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("Icon/Background.jpg")) {
+        std::cout << "ERROR: Could not load background!" << std::endl;
+    }
+    sf::Sprite background(backgroundTexture);
+
+    // Scale background to fit window if needed
+    sf::Vector2u textureSize = backgroundTexture.getSize();
+    sf::Vector2u windowSize = window.getSize();
+    float scaleX = (float)windowSize.x / textureSize.x;
+    float scaleY = (float)windowSize.y / textureSize.y;
+    background.setScale({ scaleX, scaleY });
                           
     // Set up balls
     std::vector<Ball> balls;
@@ -186,12 +211,13 @@ int main()
             }                                         
         }
 
-        window.clear(sf::Color::Black);   
+        window.clear();
+        window.draw(background);
                 
         // Draw and update balls
         for (Ball& b : balls) {           
             UpdateBall(b,dt);
-            DrawBall(b, window);
+            DrawBall(b, window, dt);
         }
         
         // Draw indicator and ghost ball

@@ -38,4 +38,10 @@ if(WIN32)
         "${CMAKE_CURRENT_SOURCE_DIR}/Icon/BounceLabIcon.png"
         "$<TARGET_FILE_DIR:BounceLab>/Icon/BounceLabIcon.png"
     )
+    # Copy background image
+    add_custom_command(TARGET BounceLab POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/Icon/Background.jpg"
+        "$<TARGET_FILE_DIR:BounceLab>/Icon/Background.jpg"
+    )
 endif()
