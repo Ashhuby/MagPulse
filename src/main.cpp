@@ -73,13 +73,28 @@ void UpdateBall(Ball& b, float delta) {
 void DetectBallCollisions(std::vector<Ball>& b) {
     for (int i = 0; i < b.size(); i++) {
         Ball& currentBall = b[i];
-        for (int j = i + 1; j < b.size(); j++) {            
-            float distanceX = currentBall.position.x - b[j].position.x;
-            float distanceY = currentBall.position.y - b[j].position.y;
-            float distance = std::sqrt(distanceX * distanceX + distanceY * distanceY); //dot product between x and y then abs value
-            if (std::abs(distance) <= (currentBall.radius + b[j].radius)) {
-            std::cout << "Collision Detected" << std::endl;
+        for (int j = i + 1; j < b.size(); j++) {
+            Ball& otherBall = b[j];
+            float distanceX = currentBall.position.x - otherBall.position.x;
+            float distanceY = currentBall.position.y - otherBall.position.y;
+            float distance = std::sqrt(distanceX * distanceX + distanceY * distanceY); // Dot product between x and y then abs value
+            if (std::abs(distance) <= (currentBall.radius + otherBall.radius)) {
+                //std::cout << "Collision Detected" << std::endl;
+                sf::Vector2f normal = (currentBall.position - otherBall.position) / distance; // Vector pointing from ball j to ball i
+                float overlap = (currentBall.radius + otherBall.radius) - distance; // This is how much overlap between the balls duh
+                sf::Vector2f relativeVelocity = currentBall.velocity - otherBall.velocity;
 
+                // Seperate balls
+                currentBall.position += normal * (overlap * 0.5f);  // Half the overlap distance (equal masses)
+                otherBall.position -= normal * (overlap * 0.5f);
+
+                float velAlongNormal = (relativeVelocity.x * normal.x) + (relativeVelocity.y * normal.y);
+                if (velAlongNormal > 0) continue;
+
+                float impulse = (- (1 + Restitution) * velAlongNormal) / 2; // Divide by 2 because masses are equal (1/m1 + 1/m2 = 2)               
+                sf::Vector2f impulseVector = normal * impulse;
+                currentBall.velocity += impulseVector;
+                otherBall.velocity -= impulseVector;
 
 
             }
