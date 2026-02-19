@@ -3,16 +3,19 @@
 #include <vector>
 #include <cmath>
 
+// Window 
+const float WindowWidth = 800;
+const float WindowHeight = 600;
+
 // Global variables
 const float GravityMultiplier = 100.0;
-const float Restitution = 0.8f; // 1 = perfectly elastic 0 = perfectly ineleastic
+const float Restitution = 1.0f; // 1 = perfectly elastic 0 = perfectly ineleastic
 const float Gravity = 9.80f * GravityMultiplier;
 const float MaxSpeed = 3000.0;
 
 // Walls
-//std::vector<float> Walls = {};
-const float FloorPosition = 600.0;
-const float RightWallPosition = 800.0;
+const float FloorPosition = WindowHeight;
+const float RightWallPosition = WindowWidth;
 const float CeilingPosition = 0.0;
 const float LeftWallPosition = 0.0;
 
@@ -106,7 +109,7 @@ int main()
 {
     std::cout << "=== BounceLab Starting ===" << std::endl;
 
-    sf::RenderWindow window(sf::VideoMode({ 800, 600 }), "BounceLab");
+    sf::RenderWindow window(sf::VideoMode({ (int)WindowWidth, (int)WindowHeight}), "BounceLab");
     //window.setFramerateLimit(60);
     //std::cout << "FPS";
              
@@ -123,6 +126,10 @@ int main()
     float initialMouseY;
     float currentMouseX;
     float currentMouseY;
+
+    //
+    sf::Color randomColour = sf::Color::White;  // Default color
+    float randomRadius = 25.0f;                  // Default radius
 
     // Loop
     while (window.isOpen())
@@ -163,25 +170,48 @@ int main()
                     float strength = 5.0f;
                     float velocityX = (initialMouseX - currentMouseX) * strength;
                     float velocityY = (initialMouseY - currentMouseY) * strength;
-                    sf::Color randomColour(rand() % 256, rand() % 256, rand() % 256);
-                    float randomRadius = 25 + (rand() % 5);
+                    randomColour = sf::Color(rand() % 256, rand() % 256, rand() % 256);
+                    randomRadius = 25 + (rand() % 5);
                     Ball ball0 = Ball({initialMouseX, initialMouseY }, randomRadius, randomColour,{velocityX, velocityY});
                     balls.push_back(ball0);
 
-                    isDragging = false;
+                   isDragging = false;
                 }                
             }                                         
         }
 
-        window.clear(sf::Color::Black);
-
-        // TODO: Visual indicator    
-
+        window.clear(sf::Color::Black);   
+                
         // Draw and update balls
         for (Ball& b : balls) {           
             UpdateBall(b,dt);
             DrawBall(b, window);
         }
+        
+        // Draw indicator and ghost ball
+        if (isDragging) {
+            // Indicator vertis
+            sf::Vertex point1;
+            sf::Vertex point2;
+            point1.position = sf::Vector2f(initialMouseX, initialMouseY);
+            point2.position = sf::Vector2f(currentMouseX, currentMouseY);
+            point1.color = sf::Color::Yellow;
+            point2.color = sf::Color::Yellow;
+            sf::Vertex line[] = { point1, point2 };
+            window.draw(line, 2, sf::PrimitiveType::Lines);
+
+            // Ghost ball
+            sf::CircleShape ghostCircle;
+            float ghostCirleRadius = 12.0;
+            ghostCircle.setRadius(ghostCirleRadius);
+            ghostCircle.setFillColor(sf::Color(255,255,255,100));
+
+            ghostCircle.setOutlineThickness(1.0f);
+            ghostCircle.setOutlineColor(sf::Color::White);
+            ghostCircle.setPosition({ currentMouseX - ghostCirleRadius, currentMouseY - ghostCirleRadius });
+            window.draw(ghostCircle);
+        }
+
         // Detect ball collisions
         DetectBallCollisions(balls);
 
